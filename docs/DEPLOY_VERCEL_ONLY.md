@@ -8,7 +8,7 @@ What changed for this: `api/index.js` (entry), `vercel.json` (build, `/api` -> f
 Known limits on serverless: the per-IP request limiter (600 / 15 min, 10 logins) is counted per function instance, so it is weaker than on a server; the per-ACCOUNT lockout is in the database and works fully. A request may take 30 s at most (`maxDuration`); very big jobs (voucher generation for a whole school) are better done class by class. Connections: `connection_limit=1` per function instance; keep the Neon direct host.
 
 ## Steps (database from docs/DEPLOY_FREE_TEST.md steps 1-3 is already done)
-1. vercel.com -> Add New -> Project -> import the GitHub repo. Leave Root Directory as is. Settings come from vercel.json. Framework: Other.
+1. vercel.com -> Add New -> Project -> import the GitHub repo. Leave Root Directory empty. Settings come from vercel.json, which sets the framework to Vite on purpose (the API is the function in `api/index.js`, the project itself is not a server). In Project Settings -> Build & Development, do not pick Express/Node as the framework, and leave the Build/Output/Install overrides off.
 2. Before pressing Deploy open **Environment Variables**, paste the content of `vercel.env` (fill the three CHANGE-ME values first). `CORS_ORIGINS` and `APP_BASE_URL` stay `https://placeholder.example` for now.
 3. Deploy. Copy the address (like `https://your-project.vercel.app`).
 4. Environment Variables: set `CORS_ORIGINS` and `APP_BASE_URL` to that exact address (https, no slash). Deployments -> the latest one -> Redeploy.
@@ -17,6 +17,7 @@ Known limits on serverless: the per-IP request limiter (600 / 15 min, 10 logins)
 ## If the build or the function fails
 | Message | Meaning / fix |
 |---|---|
+| build ends with `[BUILD_FAILED] No entrypoint found in "/vercel/path0"` right after the Vite output | Vercel took the project for a backend app (Express preset) instead of a Vite site with an `api/` function. Fixed in v0.20.8 by `"framework": "vite"` in vercel.json. If it still happens: Settings -> Build & Development -> Framework Preset = Vite, Root Directory empty, then Redeploy without build cache |
 | build: `prisma` or `@prisma/client` not found | install step did not generate; send the log |
 | runtime: `Query engine library ... not found` / `rhel-openssl-3.0.x` | engine not included in the function; send the log, `includeFiles` in vercel.json needs adjusting |
 | runtime: `Cannot find module ... argon2` / `.node` file | argon2 binary not traced; same fix place |

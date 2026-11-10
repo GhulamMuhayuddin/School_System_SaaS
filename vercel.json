@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile --ignore-scripts && pnpm --filter @nexora/shared build && pnpm --filter @nexora/api db:generate",
   "buildCommand": "pnpm --filter @nexora/api build && pnpm --filter @nexora/web build",
   "outputDirectory": "apps/web/dist",
