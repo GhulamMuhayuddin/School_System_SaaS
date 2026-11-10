@@ -4,7 +4,8 @@
 // Later phases add their tables here with school_id and re-run `pnpm db:rls`.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"] // rhel = Vercel / AWS Lambda (Linux)
 }
 
 datasource db {

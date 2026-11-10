@@ -1,7 +1,7 @@
 {
   "name": "nexora-school-erp",
   "private": true,
-  "version": "0.20.6",
+  "version": "0.20.7",
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "postinstall": "pnpm --filter @nexora/shared build && pnpm --filter @nexora/api db:generate",

@@ -73,15 +73,19 @@ const app = createApp({
   },
 });
 
-const server = app.listen(env.PORT, () => logger.info(`API listening on http://localhost:${env.PORT}`));
-
-async function shutdown(signal: string): Promise<void> {
-  logger.info(`${signal} received, shutting down`);
-  server.close(async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  });
-  setTimeout(() => process.exit(1), 10_000).unref();
+// On Vercel (serverless) the platform calls the exported app for every request; nothing may listen on a port.
+if (!process.env.VERCEL) {
+  const server = app.listen(env.PORT, () => logger.info(`API listening on http://localhost:${env.PORT}`));
+  const shutdown = async (signal: string): Promise<void> => {
+    logger.info(`${signal} received, shutting down`);
+    server.close(async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
+  process.on('SIGINT', () => void shutdown('SIGINT'));
 }
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
-process.on('SIGINT', () => void shutdown('SIGINT'));
+
+export default app;

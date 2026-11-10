@@ -60,7 +60,7 @@ const vcsp = vj.headers.flatMap((h) => h.headers).find((h) => h.key === 'Content
 check(vcsp === csp, 'vercel.json carries the same CSP', 'vercel.json CSP differs from apps/web/public/_headers');
 
 console.log('5. Files the deployment needs');
-for (const f of ['docker/Dockerfile', 'docker/caddy/Caddyfile', 'docker/postgres/init-prod.sh', 'scripts/backup.sh', 'scripts/restore.sh', 'scripts/restore-test.sh', 'pnpm-lock.yaml', 'docs/DEPLOYMENT.md', 'docs/OPERATIONS.md', 'vercel.json', 'render.yaml', 'docs/DEPLOY_FREE_TEST.md']) {
+for (const f of ['docker/Dockerfile', 'docker/caddy/Caddyfile', 'docker/postgres/init-prod.sh', 'scripts/backup.sh', 'scripts/restore.sh', 'scripts/restore-test.sh', 'pnpm-lock.yaml', 'docs/DEPLOYMENT.md', 'docs/OPERATIONS.md', 'vercel.json', 'render.yaml', 'docs/DEPLOY_FREE_TEST.md', 'docs/DEPLOY_VERCEL_ONLY.md', 'api/index.js']) {
   check(existsSync(join(root, f)), f, `missing: ${f}`);
 }
 

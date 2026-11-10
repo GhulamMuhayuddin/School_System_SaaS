@@ -1,12 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "pnpm install --frozen-lockfile --ignore-scripts && pnpm --filter @nexora/shared build",
-  "buildCommand": "pnpm --filter @nexora/web build",
+  "installCommand": "pnpm install --frozen-lockfile --ignore-scripts && pnpm --filter @nexora/shared build && pnpm --filter @nexora/api db:generate",
+  "buildCommand": "pnpm --filter @nexora/api build && pnpm --filter @nexora/web build",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://CHANGE-ME-nexora-api.onrender.com/api/:path*"
+      "destination": "/api/index"
     },
     {
       "source": "/(.*)",
@@ -56,5 +56,14 @@
         }
       ]
     }
-  ]
+  ],
+  "regions": [
+    "sin1"
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "{apps/api/dist/**,packages/shared/dist/**,packages/shared/package.json,node_modules/.pnpm/@prisma+client*/node_modules/.prisma/**,node_modules/.pnpm/argon2@*/node_modules/argon2/**}"
+    }
+  }
 }
