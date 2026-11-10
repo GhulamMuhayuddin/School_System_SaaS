@@ -13,6 +13,8 @@ const schema = z
       .default('http://localhost:5173')
       .transform((value) => value.split(',').map((o) => o.trim()).filter(Boolean)),
     TRUST_PROXY: bool.default(false),
+    // How many proxies sit between the browser and the API (only used when TRUST_PROXY=true). Docker + Caddy = 1; Vercel -> Render = 2.
+    TRUST_PROXY_HOPS: z.coerce.number().int().min(1).max(5).default(1),
 
     // Authentication (Phase 3). The access-token secret has no default on purpose.
     JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters (see .env.example)'),

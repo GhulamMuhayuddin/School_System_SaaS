@@ -66,6 +66,7 @@ export interface AppDeps {
   logger: Logger;
   corsOrigins: string[];
   trustProxy?: boolean;
+  trustProxyHops?: number;
   checkDatabase: () => Promise<void>;
   /** Authentication + RBAC. Optional so lightweight tests can build the app without it. */
   auth?: AuthRuntime;
@@ -125,7 +126,7 @@ export interface AppDeps {
 export function createApp(deps: AppDeps): Express {
   const app = express();
   app.disable('x-powered-by');
-  if (deps.trustProxy) app.set('trust proxy', 1);
+  if (deps.trustProxy) app.set('trust proxy', deps.trustProxyHops ?? 1);
 
   app.use(
     pinoHttp({

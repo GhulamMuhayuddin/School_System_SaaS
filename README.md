@@ -23,4 +23,3 @@ See docs/AUTH.md. Set `JWT_ACCESS_SECRET` in apps/api/.env before starting the A
 
 ## Deployment (Phase 20)
 See docs/DEPLOYMENT.md and docs/OPERATIONS.md. Before deploying run `node scripts/check-deploy.mjs`.
-"# School_System_SaaS" 

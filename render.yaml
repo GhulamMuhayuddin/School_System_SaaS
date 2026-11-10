@@ -1,0 +1,27 @@
+# Render Blueprint for the FREE TEST setup (Phase 20B). API only; the web app is on Vercel, the database on Neon.
+# Written here, NOT deployed here. Free instances sleep after a while: the first request can take about a minute.
+services:
+  - type: web
+    name: nexora-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @nexora/api build
+    startCommand: cd apps/api && node dist/server.js
+    healthCheckPath: /api/health/ready
+    envVars:
+      - { key: NODE_VERSION, value: "20" }
+      - { key: NODE_ENV, value: production }
+      - { key: TRUST_PROXY, value: "true" }
+      - { key: TRUST_PROXY_HOPS, value: "2" }          # browser -> Vercel -> Render -> API. If everybody gets locked out together, see docs/DEPLOY_FREE_TEST.md
+      - { key: COOKIE_SECURE, value: "true" }
+      - { key: EMAIL_TRANSPORT, value: smtp }
+      - { key: CORS_ORIGINS, sync: false }              # https://YOUR-PROJECT.vercel.app (exact, no slash)
+      - { key: APP_BASE_URL, sync: false }              # same address
+      - { key: DATABASE_URL, sync: false }              # Neon, role nexora_app
+      - { key: JWT_ACCESS_SECRET, sync: false }
+      - { key: EMAIL_FROM, sync: false }
+      - { key: SMTP_HOST, sync: false }
+      - { key: SMTP_PORT, value: "587" }
+      - { key: SMTP_USER, sync: false }
+      - { key: SMTP_PASS, sync: false }

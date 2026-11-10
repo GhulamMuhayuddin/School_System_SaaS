@@ -40,6 +40,7 @@ const app = createApp({
   logger,
   corsOrigins: env.CORS_ORIGINS,
   trustProxy: env.TRUST_PROXY,
+  trustProxyHops: env.TRUST_PROXY_HOPS,
   auth: createAuthRuntime(env, prisma, logger),
   roles: new RolesService(prisma),
   platform: new PlatformService(prisma),

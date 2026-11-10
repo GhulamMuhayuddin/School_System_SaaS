@@ -55,8 +55,12 @@ const csp = headers.split('\n').find((l) => l.trim().startsWith('Content-Securit
 check(read('docker/nginx/web.conf').split(csp).length - 1 >= 2, 'docker/nginx/web.conf carries the same CSP (server + location)', 'docker/nginx/web.conf CSP differs from apps/web/public/_headers');
 check(read('docs/deploy/nginx-web.conf.example').includes(csp), 'docs/deploy/nginx-web.conf.example carries the same CSP', 'nginx example CSP differs');
 
+const vj = JSON.parse(read('vercel.json'));
+const vcsp = vj.headers.flatMap((h) => h.headers).find((h) => h.key === 'Content-Security-Policy')?.value;
+check(vcsp === csp, 'vercel.json carries the same CSP', 'vercel.json CSP differs from apps/web/public/_headers');
+
 console.log('5. Files the deployment needs');
-for (const f of ['docker/Dockerfile', 'docker/caddy/Caddyfile', 'docker/postgres/init-prod.sh', 'scripts/backup.sh', 'scripts/restore.sh', 'scripts/restore-test.sh', 'pnpm-lock.yaml', 'docs/DEPLOYMENT.md', 'docs/OPERATIONS.md']) {
+for (const f of ['docker/Dockerfile', 'docker/caddy/Caddyfile', 'docker/postgres/init-prod.sh', 'scripts/backup.sh', 'scripts/restore.sh', 'scripts/restore-test.sh', 'pnpm-lock.yaml', 'docs/DEPLOYMENT.md', 'docs/OPERATIONS.md', 'vercel.json', 'render.yaml', 'docs/DEPLOY_FREE_TEST.md']) {
   check(existsSync(join(root, f)), f, `missing: ${f}`);
 }
 
