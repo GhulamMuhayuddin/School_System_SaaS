@@ -1,0 +1,90 @@
+# Production stack (Phase 20): db + api + web + caddy. Written here, NOT started here (no Docker in the authoring environment).
+#   cp .env.production.example .env.production   (fill every CHANGE-ME)
+#   docker compose --env-file .env.production -f docker-compose.prod.yml build
+#   docker compose --env-file .env.production -f docker-compose.prod.yml up -d db
+#   docker compose --env-file .env.production -f docker-compose.prod.yml --profile tools run --rm migrate
+#   docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+# Full steps: docs/DEPLOYMENT.md
+name: nexora
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexora
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: nexora_school
+      NEXORA_APP_PASSWORD: ${NEXORA_APP_PASSWORD:?set NEXORA_APP_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-prod.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+    # No `ports:` on purpose: the database is reachable only from the other containers.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexora -d nexora_school"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile, target: api }
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: "4000"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TRUST_PROXY: "true"
+      COOKIE_SECURE: "true"
+      CORS_ORIGINS: https://${DOMAIN:?set DOMAIN}
+      APP_BASE_URL: https://${DOMAIN}
+      DATABASE_URL: postgresql://nexora_app:${NEXORA_APP_PASSWORD}@db:5432/nexora_school
+      DIRECT_URL: postgresql://nexora:${POSTGRES_PASSWORD}@db:5432/nexora_school
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?set JWT_ACCESS_SECRET}
+      EMAIL_TRANSPORT: smtp
+      EMAIL_FROM: ${EMAIL_FROM:?set EMAIL_FROM}
+      SMTP_HOST: ${SMTP_HOST:?set SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+
+  web:
+    build: { context: ., dockerfile: docker/Dockerfile, target: web }
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [api, web]
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # One-off job (not started by `up`): apply migrations, apply RLS, seed roles/permissions + the first super admin.
+  migrate:
+    profiles: [tools]
+    build: { context: ., dockerfile: docker/Dockerfile, target: api }
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://nexora_app:${NEXORA_APP_PASSWORD}@db:5432/nexora_school
+      DIRECT_URL: postgresql://nexora:${POSTGRES_PASSWORD}@db:5432/nexora_school
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      SEED_SUPERADMIN_EMAIL: ${SEED_SUPERADMIN_EMAIL:?set SEED_SUPERADMIN_EMAIL}
+      SEED_SUPERADMIN_PASSWORD: ${SEED_SUPERADMIN_PASSWORD:?set SEED_SUPERADMIN_PASSWORD}
+      SEED_DEMO_SCHOOL: "false"
+    command: ["sh", "-c", "pnpm db:deploy && pnpm db:rls && pnpm db:seed"]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

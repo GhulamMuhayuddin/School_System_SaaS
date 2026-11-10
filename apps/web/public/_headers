@@ -1,0 +1,18 @@
+# Security headers for the web app (Netlify / Cloudflare Pages format; nginx users: see docs/deploy/nginx-web.conf.example).
+# The app loads only its own scripts, styles, fonts and images, and talks to the API at the same address (/api).
+# If the API lives on ANOTHER address, add it to connect-src (for example: connect-src 'self' https://api.school.example.pk).
+# style-src needs 'unsafe-inline' because React sets a few style="" attributes (chart sizes). Scripts have no inline exception.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/index.html
+  Cache-Control: no-cache

@@ -1,0 +1,12 @@
+# HTTPS front door (Phase 20). Caddy gets and renews the Let's Encrypt certificate by itself.
+# /api goes straight to the API (ONE proxy hop, which is what TRUST_PROXY=true / `trust proxy 1` expects);
+# everything else is the static web app. Do not put another proxy between Caddy and the API.
+{$DOMAIN} {
+  encode zstd gzip
+  handle /api/* {
+    reverse_proxy api:4000
+  }
+  handle {
+    reverse_proxy web:80
+  }
+}

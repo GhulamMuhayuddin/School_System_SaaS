@@ -1,0 +1,31 @@
+@import '@fontsource/noto-nastaliq-urdu/400.css';
+@import '@fontsource/noto-nastaliq-urdu/600.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-canvas font-sans text-ink antialiased; }
+  html[lang='ur'] body { @apply font-urdu; line-height: 2; }
+  html[lang='ur'] h1, html[lang='ur'] h2, html[lang='ur'] h3 { line-height: 1.9; }
+  :focus-visible { @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white; }
+  ::selection { @apply bg-brand-100; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Printing (certificates, payslips): only the .print-area is printed, on A4. Pages show a toolbar with .no-print that disappears on paper. */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  .print-area, .print-area * { visibility: visible !important; }
+  .print-area { position: absolute; inset-inline: 0; top: 0; width: 100%; margin: 0 !important; box-shadow: none !important; border: 0 !important; }
+  .no-print { display: none !important; }
+  .print-page { break-after: page; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; padding: 0 !important; margin: 0 !important; --tw-ring-shadow: 0 0 #0000 !important; }
+  .print-page:last-child { break-after: auto; }
+  .print-avoid { break-inside: avoid; }
+}
