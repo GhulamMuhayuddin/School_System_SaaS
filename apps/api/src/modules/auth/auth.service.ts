@@ -231,12 +231,21 @@ export class AuthService implements AuthApi {
       return user.email;
     });
 
-    if (!target) return;
+    // On Vercel a function is frozen the moment the response is sent, so an email that is not
+    // awaited never leaves. There the send is awaited, and the "unknown address" path waits about
+    // as long, so both answers take a similar time.
+    const onServerless = Boolean(process.env.VERCEL);
+    if (!target) {
+      if (onServerless) await new Promise((resolve) => setTimeout(resolve, 1500));
+      return;
+    }
     const link = `${this.config.appBaseUrl.replace(/\/+$/, '')}/reset-password?token=${encodeURIComponent(rawToken)}`;
-    // Not awaited on purpose: sending takes time and a slower response would reveal that the account exists.
-    void this.email.send(resetPasswordEmail(target, link, this.config.resetTokenMinutes)).catch((error: unknown) => {
+    const sending = this.email.send(resetPasswordEmail(target, link, this.config.resetTokenMinutes)).catch((error: unknown) => {
       this.logger.error({ err: error }, 'Failed to send password reset email');
     });
+    // Normal server: not awaited on purpose, a slower response would reveal that the account exists.
+    if (onServerless) await sending;
+    else void sending;
   }
 
   async resetPassword(rawToken: string, newPassword: string, meta: RequestMeta): Promise<void> {

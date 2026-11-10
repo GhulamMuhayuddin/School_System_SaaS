@@ -32,6 +32,10 @@ export class SmtpEmailService implements EmailService {
       host: options.host,
       port: options.port,
       secure: options.secure,
+      // fail in seconds with a readable error instead of hanging until the platform kills the request
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
       ...(options.user ? { auth: { user: options.user, pass: options.pass ?? '' } } : {}),
     });
   }
